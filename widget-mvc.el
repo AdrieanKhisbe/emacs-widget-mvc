@@ -1,7 +1,7 @@
 ;;; widget-mvc.el --- MVC framework for the emacs widgets
 
 ;; Author: SAKURAI Masashi <m.sakurai at kiwanami.net>
-;; Copyright (C) 2013 
+;; Copyright (C) 2013-2015
 ;; Keywords: lisp, widget
 ;; Version: 0.0.2
 
@@ -28,13 +28,13 @@
 ;;  - Validation
 ;;  - Action Mapping
 ;;  - Session Attributes
-;; 
+;;
 ;; * Widget Template
-;; 
+;;
 ;; Sample:
-;; 
+;;
 ;; Syntax:
-;; 
+;;
 
 ;; Todo
 ;;   component
@@ -113,7 +113,7 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
       (setq pair (assq 'English wmvc:lang-messages)))
     (cond
      ((null pair) msg-id)
-     (t 
+     (t
       (let ((mpair (assq msg-id (cdr pair))))
         (if mpair (apply 'format (cdr mpair) args) msg-id))))))
 
@@ -122,7 +122,7 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
 
 ;; [wmvc:context]
 ;; lang        : a symbol of the language for messages. If `nil', the framework displays default messages.
-;; template    : a list of the form template 
+;; template    : a list of the form template
 ;; model       : an alist of the current model data
 ;; validations : an alist of the validation functions
 ;; widget-map  : an alist of the widget instances
@@ -147,7 +147,7 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
     (cdr (assq name attrs))))
 
 (defun wmvc:context-widget-map-add (context name widget)
-  (let ((widget-map (cons (cons name widget) 
+  (let ((widget-map (cons (cons name widget)
                           (wmvc:context-widget-map context))))
     (setf (wmvc:context-widget-map context) widget-map)))
 
@@ -208,13 +208,13 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
      ('message (wmvc:tmpl-make-widget-message elm-plist context)))))
 
 (defun wmvc:tmpl-make-widget-input (elm-plist context)
-  (let* ((type (plist-get elm-plist ':type)) 
+  (let* ((type (plist-get elm-plist ':type))
          (name (plist-get elm-plist ':name))
          (widget
           (case type
             ('const
              (wmvc:tmpl-make-widget-input-const elm-plist context))
-            ('text 
+            ('text
              (wmvc:tmpl-make-widget-input-text elm-plist context))
             ('password
              (plist-put elm-plist ':secret t)
@@ -395,7 +395,7 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
       (wmvc:context-widget-map-add context name widget))))
 
 (defun wmvc:tmpl-make-widget-message (elm-plist context)
-  (let* ((key (plist-get elm-plist ':key)) 
+  (let* ((key (plist-get elm-plist ':key))
          (face (plist-get elm-plist ':face))
          (msg (wmvc:context-attr-get context key)))
     (when msg
@@ -410,7 +410,7 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
         with model = (wmvc:context-model context)
         for (name . widget) in widget-map
         for (fname . data) = (assq name model)
-        do 
+        do
         (when (and fname
                    data
                    ;; `widget-value-set' might cause widget value is lost on some widgets.
@@ -445,7 +445,7 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
       (wmvc:reload-buffer ctx)
       (throw 'fail nil))))
 
-(wmvc:lang-register-messages 
+(wmvc:lang-register-messages
  't '(
       validation-not-be-empty "should not empty."
       validation-be-integer "should be a number."
@@ -455,7 +455,7 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
       validation-be-longer-than "should be longer than %s."
       validation-be-shorter-than "should be shorter than %s"
       ))
-(wmvc:lang-register-messages 
+(wmvc:lang-register-messages
  'Japanese '(
       validation-not-be-empty "必須入力"
       validation-be-integer "整数値"
@@ -524,7 +524,7 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
 ;;; controller
 
 (defun wmvc:reload-buffer (context)
-  (let* ((win (get-buffer-window)) 
+  (let* ((win (get-buffer-window))
          (new-buf (wmvc:rebuild-buffer context)))
     (cond
      ((or (null win) (not (window-live-p win)))
@@ -543,8 +543,8 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
 
 (defun* wmvc:build-buffer(&key buffer tmpl model actions validations attributes lang)
   (let ((context
-         (make-wmvc:context 
-          :template tmpl :model model 
+         (make-wmvc:context
+          :template tmpl :model model
           :action-map actions :validations validations
           :attributes attributes :lang (or lang (intern current-language-environment)))))
     (unless buffer
@@ -566,45 +566,7 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
 
 (defun wmvc:demo-template ()
   (interactive)
-  (let ((src `(
-               ,(propertize "Form Sample" 'face 'info-title-1) BR
-               "This is a sample template.\nA normal text is inserted as is." BR
-               "BR inserts a line break." BR BR
-               (message :name error :face compilation-error) BR
-               "  Input A  : "
-               (input :name input-a :type text :size 30) BR
-               "  Input B  : "
-               (input :name input-b :type text :size 30) "(decimal 0 - 12)" BR
-               "  Password : "
-               (input :name password :type password :size 20) BR
-               "  Option   : "
-               "Alpha" (input :name check-a :type checkbox) " "
-               "Beta"  (input :name check-b :type checkbox) " "
-               "Gamma" (input :name check-c :type checkbox) BR
-               "  Radio Select : " 
-               (input :name radio-a :type radio
-                      :options (("select1" . 1) ("select2" . 2) ("select3" . 3) ("select4" . 4)))
-               BR
-               "  Select1  : "
-               (input :name select1 :type select 
-                      :options ("select1" "select2" "select3" "select4"))
-               BR
-               "  Select2  : "
-               (input :name select2 :type select :multiple t
-                      :options (("select1" . 1) ("select2" . 2) ("select3" . 3) ("select4" . 4)))
-               BR
-               "  Date : "
-               (input :name mdate :type date)
-               BR
-               "  Link : "
-               (input :name linker :type link :url "http://www.gnu.org")
-               BR
-               "  Const : "
-               (input :name hidden-data :type const)
-               BR BR
-               "    " (button :title "OK" :action on-submit :validation t)
-               "  " (button :title "Cancel" :action on-cancel)))
-        (model 
+  (let ((model
          '((input-a . "")  (input-b . "6")
            (password . "") (check-a . t) (check-b . nil) (check-c . nil)
            (radio-a . 4) (select1 . "select2") (select2 . (3))
@@ -615,14 +577,53 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
            (input-b . (wmvc:validation-decimal :min 0 :max 12))
            (password . (wmvc:validation-length :min 5 :max 10))
            ))
-        (action-mapping 
+        (action-mapping
          '((on-submit . wmvc:demo-submit-action)
-           (on-cancel . (lambda (model) 
+           (on-cancel . (lambda (model)
                           (message "canceled")
                           (kill-this-buffer)))))
-        (attributes '()))
+        (attributes '())
+        (src
+         `(
+           ,(propertize "Form Sample" 'face 'info-title-1) BR
+           "This is a sample template.\nA normal text is inserted as is." BR
+           "BR inserts a line break." BR BR
+           (message :name error :face compilation-error) BR
+           "  Input A  : "
+           (input :name input-a :type text :size 30) BR
+           "  Input B  : "
+           (input :name input-b :type text :size 30) "(decimal 0 - 12)" BR
+           "  Password : "
+           (input :name password :type password :size 20) BR
+           "  Option   : "
+           "Alpha" (input :name check-a :type checkbox) " "
+           "Beta"  (input :name check-b :type checkbox) " "
+           "Gamma" (input :name check-c :type checkbox) BR
+           "  Radio Select : "
+           (input :name radio-a :type radio
+                  :options (("select1" . 1) ("select2" . 2) ("select3" . 3) ("select4" . 4)))
+           BR
+           "  Select1  : "
+           (input :name select1 :type select
+                  :options ("select1" "select2" "select3" "select4"))
+           BR
+           "  Select2  : "
+           (input :name select2 :type select :multiple t
+                  :options (("select1" . 1) ("select2" . 2) ("select3" . 3) ("select4" . 4)))
+           BR
+           "  Date : "
+           (input :name mdate :type date)
+           BR
+           "  Link : "
+           (input :name linker :type link :url "http://www.gnu.org")
+           BR
+           "  Const : "
+           (input :name hidden-data :type const)
+           BR BR
+           "    " (button :title "OK" :action on-submit :validation t)
+           "  " (button :title "Cancel" :action on-cancel))))
     (pop-to-buffer
-     (wmvc:build-buffer 
+     (wmvc:build-buffer
       :buffer (wmvc:get-new-buffer)
       :tmpl src :model model :actions action-mapping
       :validations validations :attributes attributes))))
