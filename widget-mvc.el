@@ -4,6 +4,8 @@
 ;; Copyright (C) 2013-2015
 ;; Keywords: lisp, widget
 ;; Version: 0.0.2
+;; Package-Requires: ((date-field "0.0.1"))
+
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -46,7 +48,7 @@
 (eval-when-compile (require 'cl))
 (require 'widget)
 (require 'wid-edit)
-(require 'date-field nil t)
+(require 'date-field)
 
 
 ;;; Utilities
@@ -376,15 +378,13 @@ CTX is a `wmvc:context'. If nil, use `current-language-environment'."
       :tag title :button-face face :mouse-face 'highlight :pressed-face 'highlight)))
 
 (defun wmvc:tmpl-make-widget-input-date (elm-plist context)
-  (if (not (featurep 'date-field))
-      (error "Can't make date field widget : date-field is not installed yet.")
     (let ((separator (plist-get elm-plist ':separator))
           (year (plist-get elm-plist ':year))
           (month (plist-get elm-plist ':month))
           (day (plist-get elm-plist ':day)))
       (wmvc:tmpl-widget-create elm-plist context
         'date-field
-        :separator separator :year year :month month :day day))))
+        :separator separator :year year :month month :day day)))
 
 (defun wmvc:tmpl-make-widget-button (elm-plist context)
   (let ((name (plist-get elm-plist ':name))
